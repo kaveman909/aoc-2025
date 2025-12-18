@@ -23,6 +23,25 @@ pub fn run() !void {
     }
 }
 
+pub fn getMax(in: u64) u64 {
+    var in_mut = in;
+    var num_digits = getNumDigits(in);
+    if ((num_digits % 2) != 0) {
+        num_digits -= 1;
+        in_mut = (math.powi(u64, 10, num_digits) catch 1) - 1;
+    }
+    const num_half = num_digits / 2;
+    const k = math.powi(u64, 10, num_half) catch 1;
+    const upper_half = in_mut / k;
+    const lower_half = in_mut - (upper_half * k);
+    std.debug.print("upper: {d}, lower: {d}\n", .{ upper_half, lower_half });
+
+    if (lower_half >= upper_half) {
+        return upper_half;
+    }
+    return upper_half - 1;
+}
+
 pub fn getMin(in: u64) u64 {
     var in_mut = in;
     var num_digits = getNumDigits(in);
@@ -64,4 +83,10 @@ test "get some mins" {
     try expect(getMin(1234) == 13);
     try expect(getMin(1212) == 12);
     try expect(getMin(463) == 10);
+}
+
+test "get some maxes" {
+    try expect(getMax(1234) == 12);
+    try expect(getMax(1210) == 11);
+    try expect(getMax(100) == 9);
 }
