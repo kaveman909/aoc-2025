@@ -23,7 +23,7 @@ pub fn run() !void {
     }
 }
 
-pub fn getHalves(in: u64, num_digits: u64) struct { u64, u64 } {
+fn getHalves(in: u64, num_digits: u64) struct { u64, u64 } {
     const num_half = num_digits / 2;
     const k = math.powi(u64, 10, num_half) catch 1;
     const upper_half = in / k;
@@ -32,7 +32,7 @@ pub fn getHalves(in: u64, num_digits: u64) struct { u64, u64 } {
     return .{ upper_half, lower_half };
 }
 
-pub fn getMax(in: u64) u64 {
+fn getMax(in: u64) u64 {
     var in_mut = in;
     var num_digits = getNumDigits(in);
     if ((num_digits % 2) != 0) {
@@ -46,7 +46,7 @@ pub fn getMax(in: u64) u64 {
     return upper_half - 1;
 }
 
-pub fn getMin(in: u64) u64 {
+fn getMin(in: u64) u64 {
     var in_mut = in;
     var num_digits = getNumDigits(in);
     if ((num_digits % 2) != 0) {
@@ -61,7 +61,7 @@ pub fn getMin(in: u64) u64 {
     return upper_half;
 }
 
-pub fn getNumDigits(in: u64) u64 {
+fn getNumDigits(in: u64) u64 {
     // 18,446,744,073,709,551,615
     const table = [_]u64{ 9, 99, 999, 9999, 99999, 999999, 9999999, 99999999, 999999999, 9999999999, 99999999999, 999999999999, 9999999999999, 99999999999999, 999999999999999, 9999999999999999, 99999999999999999, 999999999999999999 };
     var y: u64 = math.log2_int(@TypeOf(in), in);
