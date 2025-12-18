@@ -6,21 +6,23 @@ const expect = std.testing.expect;
 
 pub fn run() !void {
     const input = @embedFile("input/day2.txt");
-    std.debug.print("Input: {s}\n", .{input});
 
     var it_range = mem.splitAny(u8, input, ",");
+    var total_invalid: u64 = 0;
     while (it_range.next()) |range| {
-        std.debug.print("{s}, ", .{range});
         var it_vals = mem.splitAny(u8, range, "-");
-        const min = fmt.parseInt(u64, it_vals.first(), 10) catch 0;
-        const max = fmt.parseInt(u64, it_vals.next().?, 10) catch 0;
-        std.debug.print("min: {d}, max: {d}\n", .{ min, max });
-
-        // var ids = min;
-        // figure out first value / last value, diff:
-        // 442734 -> 443443 -> 443 -> (459 - 443) + 1
-        // 459620 -> 459459 -> 459
+        const min = getMin(fmt.parseInt(u64, it_vals.first(), 10) catch 0);
+        const max = getMax(fmt.parseInt(u64, it_vals.next().?, 10) catch 0);
+        if (min <= max) {
+            var local_total: u64 = 0;
+            for (min..(max + 1)) |i| {
+                local_total += i;
+                local_total += (math.powi(u64, 10, getNumDigits(i)) catch 1) * i;
+            }
+            total_invalid += local_total;
+        }
     }
+    std.debug.print("Part 1: {d}\n", .{total_invalid});
 }
 
 fn getHalves(in: u64, num_digits: u64) struct { u64, u64 } {
@@ -28,7 +30,6 @@ fn getHalves(in: u64, num_digits: u64) struct { u64, u64 } {
     const k = math.powi(u64, 10, num_half) catch 1;
     const upper_half = in / k;
     const lower_half = in - (upper_half * k);
-    std.debug.print("upper: {d}, lower: {d}\n", .{ upper_half, lower_half });
     return .{ upper_half, lower_half };
 }
 
@@ -54,7 +55,6 @@ fn getMin(in: u64) u64 {
         num_digits += 1;
     }
     const upper_half, const lower_half = getHalves(in_mut, num_digits);
-
     if (lower_half > upper_half) {
         return upper_half + 1;
     }
