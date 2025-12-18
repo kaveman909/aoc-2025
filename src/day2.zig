@@ -23,6 +23,15 @@ pub fn run() !void {
     }
 }
 
+pub fn getHalves(in: u64, num_digits: u64) struct { u64, u64 } {
+    const num_half = num_digits / 2;
+    const k = math.powi(u64, 10, num_half) catch 1;
+    const upper_half = in / k;
+    const lower_half = in - (upper_half * k);
+    std.debug.print("upper: {d}, lower: {d}\n", .{ upper_half, lower_half });
+    return .{ upper_half, lower_half };
+}
+
 pub fn getMax(in: u64) u64 {
     var in_mut = in;
     var num_digits = getNumDigits(in);
@@ -30,12 +39,7 @@ pub fn getMax(in: u64) u64 {
         num_digits -= 1;
         in_mut = (math.powi(u64, 10, num_digits) catch 1) - 1;
     }
-    const num_half = num_digits / 2;
-    const k = math.powi(u64, 10, num_half) catch 1;
-    const upper_half = in_mut / k;
-    const lower_half = in_mut - (upper_half * k);
-    std.debug.print("upper: {d}, lower: {d}\n", .{ upper_half, lower_half });
-
+    const upper_half, const lower_half = getHalves(in_mut, num_digits);
     if (lower_half >= upper_half) {
         return upper_half;
     }
@@ -49,11 +53,7 @@ pub fn getMin(in: u64) u64 {
         in_mut = math.powi(u64, 10, num_digits) catch 1;
         num_digits += 1;
     }
-    const num_half = num_digits / 2;
-    const k = math.powi(u64, 10, num_half) catch 1;
-    const upper_half = in_mut / k;
-    const lower_half = in_mut - (upper_half * k);
-    std.debug.print("upper: {d}, lower: {d}\n", .{ upper_half, lower_half });
+    const upper_half, const lower_half = getHalves(in_mut, num_digits);
 
     if (lower_half > upper_half) {
         return upper_half + 1;
