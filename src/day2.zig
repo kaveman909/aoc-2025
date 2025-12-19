@@ -72,19 +72,44 @@ fn getNumDigits(in: u64) u64 {
     return y + 1;
 }
 
-fn isInvalid(in: u64, chunk_size: u64) !bool {
-    const N = getNumDigits(in);
-    const num_chunks = N / chunk_size;
-    var buf: [20]u8 = undefined;
-    const in_str = try fmt.bufPrint(&buf, "{}", .{in});
-    const first_chunk = in_str[0..chunk_size];
-    for (1..num_chunks) |i| {
-        const new_chunk = in_str[i * chunk_size .. (i * chunk_size) + chunk_size];
-        if (!mem.eql(u8, new_chunk, first_chunk)) {
-            return false;
+fn isInvalid2(in: []u8, N: usize, factors: []const u32) bool {
+    for (factors) |chunk_size| {
+        const num_chunks = N / chunk_size;
+        const first_chunk = in[0..chunk_size];
+        var invalid = true;
+        for (1..num_chunks) |i| {
+            const new_chunk = in[i * chunk_size .. (i * chunk_size) + chunk_size];
+            if (!mem.eql(u8, new_chunk, first_chunk)) {
+                invalid = false;
+                break;
+            }
+        }
+        if (invalid) {
+            return true;
         }
     }
-    return true;
+    return false;
+}
+
+fn isInvalid(in: u64) !bool {
+    const factors_list = [_][]const u32{
+        &[_]u32{1}, //2
+        &[_]u32{1}, //3
+        &[_]u32{ 1, 2 }, //4
+        &[_]u32{1}, //5
+        &[_]u32{ 1, 2, 3 }, //6
+        &[_]u32{1}, //7
+        &[_]u32{ 1, 2, 4 }, //8
+        &[_]u32{ 1, 3 }, //9
+        &[_]u32{ 1, 2, 5 }, //10
+    };
+
+    var buf: [20]u8 = undefined;
+    const in_str = try fmt.bufPrint(&buf, "{}", .{in});
+    const N = in_str.len;
+    const factors = factors_list[N - 2];
+
+    return isInvalid2(in_str, N, factors);
 }
 
 test "get some digits" {
@@ -107,10 +132,14 @@ test "get some maxes" {
 }
 
 test "print chunks" {
-    try expect((try isInvalid(1111, 1)) == true);
-    try expect((try isInvalid(1111, 2)) == true);
-    try expect((try isInvalid(12121212, 2)) == true);
-    try expect((try isInvalid(12121212, 4)) == true);
-    try expect((try isInvalid(12131212, 4)) == false);
-    try expect((try isInvalid(12121312, 2)) == false);
+    try expect((try isInvalid(1111)) == true);
+    try expect((try isInvalid(1111)) == true);
+    try expect((try isInvalid(22222222)) == true); // 1
+    try expect((try isInvalid(12121212)) == true); // 2
+    try expect((try isInvalid(23452345)) == true); // 4
+    try expect((try isInvalid(135135135)) == true); // 3
+    try expect((try isInvalid(135135136)) == false); // 3
+    try expect((try isInvalid(1234512345)) == true); // 5
+    try expect((try isInvalid(12131212)) == false);
+    try expect((try isInvalid(12121312)) == false);
 }
