@@ -28,21 +28,16 @@ pub fn build(b: *std.Build) void {
     // to our consumers. We must give it a name because a Zig package can expose
     // multiple modules and consumers will need to be able to specify which
     // module they want to access.
-    const mod = b.addModule("day1", .{
+    const mod = b.addModule("day", .{
         // The root source file is the "entry point" of this module. Users of
         // this module will only be able to access public declarations contained
         // in this file, which means that if you have declarations that you
         // intend to expose to consumers that were defined in other files part
         // of this module, you will have to make sure to re-export them from
         // the root file.
-        .root_source_file = b.path("src/day1.zig"),
+        .root_source_file = b.path("src/day2.zig"),
         // Later on we'll use this module as the root module of a test executable
         // which requires us to specify a target.
-        .target = target,
-    });
-
-    const mod2 = b.addModule("day2", .{
-        .root_source_file = b.path("src/day2.zig"),
         .target = target,
     });
 
@@ -84,8 +79,7 @@ pub fn build(b: *std.Build) void {
                 // can be extremely useful in case of collisions (which can happen
                 // importing modules from different packages).
                 // .{ .name = "aoc_2025", .module = mod },
-                .{ .name = "day1", .module = mod },
-                .{ .name = "day2", .module = mod2 },
+                .{ .name = "day", .module = mod },
             },
         }),
     });
