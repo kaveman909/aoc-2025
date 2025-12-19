@@ -82,20 +82,16 @@ fn getNumDigits(in: u64) u64 {
 }
 
 fn isInvalid2(in: []u8, N: usize, factors: []const u32) bool {
-    for (factors) |chunk_size| {
+    outer: for (factors) |chunk_size| {
         const num_chunks = N / chunk_size;
         const first_chunk = in[0..chunk_size];
-        var invalid = true;
         for (1..num_chunks) |i| {
             const new_chunk = in[i * chunk_size .. (i * chunk_size) + chunk_size];
             if (!mem.eql(u8, new_chunk, first_chunk)) {
-                invalid = false;
-                break;
+                continue :outer;
             }
         }
-        if (invalid) {
-            return true;
-        }
+        return true;
     }
     return false;
 }
