@@ -9,10 +9,13 @@ pub fn run() !void {
 
     var it_range = mem.splitAny(u8, input, ",");
     var total_invalid: u64 = 0;
+    var total_invalid2: u64 = 0;
     while (it_range.next()) |range| {
         var it_vals = mem.splitAny(u8, range, "-");
-        const min = getMin(fmt.parseInt(u64, it_vals.first(), 10) catch 0);
-        const max = getMax(fmt.parseInt(u64, it_vals.next().?, 10) catch 0);
+        const min_in = try fmt.parseInt(u64, it_vals.first(), 10);
+        const max_in = try fmt.parseInt(u64, it_vals.next().?, 10);
+        const min = getMin(min_in);
+        const max = getMax(max_in);
         if (min <= max) {
             var local_total: u64 = 0;
             for (min..(max + 1)) |i| {
@@ -21,8 +24,14 @@ pub fn run() !void {
             }
             total_invalid += local_total;
         }
+        for (min_in..(max_in + 1)) |i| {
+            if (try isInvalid(i)) {
+                total_invalid2 += i;
+            }
+        }
     }
     std.debug.print("Part 1: {d}\n", .{total_invalid});
+    std.debug.print("Part 2: {d}\n", .{total_invalid2});
 }
 
 fn getHalves(in: u64, num_digits: u64) struct { u64, u64 } {
@@ -107,6 +116,9 @@ fn isInvalid(in: u64) !bool {
     var buf: [20]u8 = undefined;
     const in_str = try fmt.bufPrint(&buf, "{}", .{in});
     const N = in_str.len;
+    if (N < 2) {
+        return false;
+    }
     const factors = factors_list[N - 2];
 
     return isInvalid2(in_str, N, factors);
