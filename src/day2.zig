@@ -72,6 +72,21 @@ fn getNumDigits(in: u64) u64 {
     return y + 1;
 }
 
+fn isInvalid(in: u64, chunk_size: u64) !bool {
+    const N = getNumDigits(in);
+    const num_chunks = N / chunk_size;
+    var buf: [20]u8 = undefined;
+    const in_str = try fmt.bufPrint(&buf, "{}", .{in});
+    const first_chunk = in_str[0..chunk_size];
+    for (1..num_chunks) |i| {
+        const new_chunk = in_str[i * chunk_size .. (i * chunk_size) + chunk_size];
+        if (!mem.eql(u8, new_chunk, first_chunk)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 test "get some digits" {
     try expect(getNumDigits(5) == 1);
     try expect(getNumDigits(123) == 3);
@@ -89,4 +104,13 @@ test "get some maxes" {
     try expect(getMax(1234) == 12);
     try expect(getMax(1210) == 11);
     try expect(getMax(100) == 9);
+}
+
+test "print chunks" {
+    try expect((try isInvalid(1111, 1)) == true);
+    try expect((try isInvalid(1111, 2)) == true);
+    try expect((try isInvalid(12121212, 2)) == true);
+    try expect((try isInvalid(12121212, 4)) == true);
+    try expect((try isInvalid(12131212, 4)) == false);
+    try expect((try isInvalid(12121312, 2)) == false);
 }
