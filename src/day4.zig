@@ -27,6 +27,24 @@ pub fn run() !void {
         }
     }
     debug.print("Part 1: {}\n", .{total_accessible_rolls});
+    // part 2
+    var removed_rolls: u32 = 0;
+    var removed_at_least_one: bool = true;
+    while (removed_at_least_one) {
+        removed_at_least_one = false;
+        for (0..N_Y) |y| {
+            for (0..N_X) |x| {
+                if (map[y][x] == '@') {
+                    if (countNearbyRolls(map, y, x) < 4) {
+                        removed_rolls += 1;
+                        removed_at_least_one = true;
+                        map[y][x] = '.';
+                    }
+                }
+            }
+        }
+    }
+    debug.print("Part 2: {}\n", .{removed_rolls});
 }
 
 fn countNearbyRolls(map: [N_Y][N_X]u8, y: usize, x: usize) u32 {
