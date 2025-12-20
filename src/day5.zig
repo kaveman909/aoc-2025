@@ -58,6 +58,10 @@ pub fn run() !void {
         }
     }
     debug.print("Part 1: {}\n", .{fresh_total});
+    // part 2
+    var all_valid_ids: u64 = 0;
+    for (merged_ranges.slice()) |r| all_valid_ids += (r.end - r.start + 1);
+    debug.print("Part 2: {}\n", .{all_valid_ids});
 }
 
 fn compareByStartOrder(id: u64, r: Range) math.Order {
