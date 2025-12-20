@@ -2,6 +2,7 @@ const std = @import("std");
 const debug = std.debug;
 const mem = std.mem;
 const fmt = std.fmt;
+const BoundedArray = @import("bounded_array").BoundedArray;
 
 const Range = struct {
     start: u64,
@@ -29,7 +30,6 @@ pub fn run() !void {
     var i: usize = 0;
     while (available_ids_in.next()) |id| : (i += 1) {
         available_ids[i] = try fmt.parseInt(u64, id, 10);
-        //debug.print("{d}\n", .{available_ids[i]});
     }
 
     i = 0;
@@ -38,7 +38,6 @@ pub fn run() !void {
         const start = try fmt.parseInt(u64, start_end.first(), 10);
         const end = try fmt.parseInt(u64, start_end.next().?, 10);
         fresh_ranges[i] = .{ .start = start, .end = end };
-        //debug.print("{}, {}\n", .{ start, end });
     }
 
     // sort ranges
@@ -46,4 +45,9 @@ pub fn run() !void {
     for (fresh_ranges) |r| {
         debug.print("{any}\n", .{r});
     }
+
+    // merge ranges
+    var merged_ranges = BoundedArray(Range, NUM_RANGES){};
+    try merged_ranges.append(fresh_ranges[0]);
+    debug.print("{any}, {d}\n", .{ merged_ranges.get(0), merged_ranges.len });
 }
