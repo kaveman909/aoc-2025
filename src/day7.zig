@@ -4,17 +4,33 @@ const debug = std.debug;
 
 pub fn run() !void {
     const input = @embedFile("input/day7.txt");
-    const N_ROWS = 142;
     const N_COLS = 141;
 
-    var grid: [N_ROWS][N_COLS]u8 = undefined;
-
     var grid_in = mem.splitAny(u8, input, "\n");
-    var j: usize = 0;
-    while (grid_in.next()) |row| : (j += 1) {
+    var cur_row: [N_COLS]u8 = undefined;
+    var above_row: [N_COLS]u8 = undefined;
+    var split_count: u64 = 0;
+    @memcpy(&above_row, grid_in.first()[0..N_COLS]);
+
+    while (grid_in.next()) |row| {
         for (row, 0..) |cell, i| {
-            grid[j][i] = cell;
+            if (cell == '.') {
+                if (cur_row[i] == '|' or above_row[i] == '|') {
+                    cur_row[i] = '|';
+                } else {
+                    cur_row[i] = '.';
+                }
+            } else if (cell == '^') {
+                if (above_row[i] == '|') {
+                    cur_row[i - 1] = '|';
+                    cur_row[i + 1] = '|';
+                    split_count += 1;
+                }
+                cur_row[i] = '.';
+            }
         }
-        debug.print("{s}\n", .{grid[j]});
+        debug.print("{s}\n", .{cur_row});
+        @memcpy(&above_row, cur_row[0..N_COLS]);
     }
+    debug.print("Part 1: {d}\n", .{split_count});
 }
