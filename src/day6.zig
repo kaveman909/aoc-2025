@@ -40,4 +40,40 @@ pub fn run() !void {
         }
     }
     debug.print("Part 1: {d}\n", .{total_sum});
+    // part 2
+    math_problems_in.reset();
+    _ = math_problems_in.first();
+    const width = math_problems_in.index.?;
+    const buf = math_problems_in.buffer;
+
+    var cur_op: u8 = undefined;
+    var cur_total: u64 = undefined;
+    var grand_total: u64 = 0;
+
+    for (buf[0 .. width - 1], buf[width .. 2 * width - 1], buf[2 * width .. 3 * width - 1], buf[3 * width .. 4 * width - 1], buf[4 * width .. 5 * width - 1]) |c1, c2, c3, c4, op| {
+        const d: [4]u8 = .{ c1, c2, c3, c4 };
+        const d_trim = mem.trim(u8, &d, " ");
+        if (d_trim.len > 0) {
+            if (op != ' ') {
+                // start of new math problem
+                cur_op = op;
+                if (cur_op == '*') {
+                    cur_total = 1;
+                } else {
+                    cur_total = 0;
+                }
+            }
+            const d_int = try fmt.parseInt(u64, d_trim, 10);
+            if (cur_op == '*') {
+                cur_total *= d_int;
+            } else {
+                cur_total += d_int;
+            }
+        } else {
+            // end of math problem
+            grand_total += cur_total;
+        }
+    }
+    grand_total += cur_total;
+    debug.print("Part 2: {d}\n", .{grand_total});
 }
