@@ -1,6 +1,7 @@
 const std = @import("std");
 const mem = std.mem;
 const debug = std.debug;
+const expect = std.testing.expect;
 
 pub fn run() !void {
     const input = @embedFile("input/day7.txt");
@@ -33,4 +34,26 @@ pub fn run() !void {
         @memcpy(&above_row, cur_row[0..N_COLS]);
     }
     debug.print("Part 1: {d}\n", .{split_count});
+}
+
+const Coord = struct {
+    x: usize,
+    y: usize,
+};
+
+const Node = struct {
+    left: ?*Node = null,
+    right: ?*Node = null,
+};
+
+test "hash stuff" {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer _ = gpa.deinit();
+    const allocator = gpa.allocator();
+
+    var map = std.AutoHashMap(Coord, Node).init(allocator);
+    defer map.deinit();
+
+    try map.put(.{ .x = 0, .y = 0 }, .{});
+    try expect(map.contains(.{ .x = 0, .y = 0 }) == true);
 }
