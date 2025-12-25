@@ -1,6 +1,7 @@
 const std = @import("std");
 const mem = std.mem;
 const debug = std.debug;
+const testing = std.testing;
 const expect = std.testing.expect;
 
 pub fn run() !void {
@@ -47,11 +48,7 @@ const Node = struct {
 };
 
 test "hash stuff" {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    defer _ = gpa.deinit();
-    const allocator = gpa.allocator();
-
-    var map = std.AutoHashMap(Coord, Node).init(allocator);
+    var map = std.AutoHashMap(Coord, Node).init(std.testing.allocator);
     defer map.deinit();
 
     try map.put(.{ .x = 0, .y = 0 }, .{});
