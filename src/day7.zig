@@ -2,11 +2,12 @@ const std = @import("std");
 const mem = std.mem;
 const debug = std.debug;
 const testing = std.testing;
+const heap = std.heap;
 const expect = std.testing.expect;
 
 pub fn run() !void {
-    const input = @embedFile("input/day7.txt");
-    const N_COLS = 141;
+    const input = @embedFile("input/day7_sample.txt");
+    const N_COLS = 15;
 
     var grid_in = mem.splitAny(u8, input, "\n");
     var cur_row: [N_COLS]u8 = undefined;
@@ -14,8 +15,12 @@ pub fn run() !void {
     var split_count: u64 = 0;
     @memcpy(&above_row, grid_in.first()[0..N_COLS]);
 
-    while (grid_in.next()) |row| {
+    // grid / j only used for Part 2, but populate during Part 1 for efficiency
+    var grid: [N_COLS][N_COLS]u8 = undefined;
+    var j: usize = 0;
+    while (grid_in.next()) |row| : (j += 1) {
         for (row, 0..) |cell, i| {
+            grid[j][i] = cell;
             if (cell == '.') {
                 if (cur_row[i] == '|' or above_row[i] == '|' or above_row[i] == 'S') {
                     cur_row[i] = '|';
@@ -31,10 +36,49 @@ pub fn run() !void {
                 cur_row[i] = '.';
             }
         }
-        debug.print("{s}\n", .{cur_row});
         @memcpy(&above_row, cur_row[0..N_COLS]);
     }
     debug.print("Part 1: {d}\n", .{split_count});
+
+    // part 2
+    // Following recommendation at https://ziglang.org/documentation/0.15.2/#Choosing-an-Allocator
+    // to use the "arena" allocator for a cmd line app that runs start-to-finish in a known fasion,
+    // allocating memory at beginnging and releasing at end of program.
+
+    var arena = heap.ArenaAllocator.init(heap.page_allocator);
+    defer arena.deinit();
+    const allocator = arena.allocator();
+    var tree = std.AutoHashMap(Coord, Node).init(allocator);
+    for (0..N_COLS) |y| {
+        for (0..N_COLS) |x| {
+            if (grid[y][x] != '^') {
+                continue;
+            }
+            // find left/right nodes
+            var left: ?Coord = null;
+            var right: ?Coord = null;
+            for ((y + 1)..N_COLS) |y2| {
+                if (grid[y2][x - 1] == '^') {
+                    if (left == null) {
+                        left = .{ .x = x - 1, .y = y2 };
+                    }
+                }
+                if (grid[y2][x + 1] == '^') {
+                    if (right == null) {
+                        right = .{ .x = x + 1, .y = y2 };
+                    }
+                }
+                if (right != null and left != null) {
+                    break;
+                }
+            }
+            try tree.put(.{ .x = x, .y = y }, .{ .left = left, .right = right });
+        }
+    }
+    var ki = tree.keyIterator();
+    while (ki.next()) |k| {
+        debug.print("k: {any}, v: {any}\n", .{ k.*, tree.get(k.*) });
+    }
 }
 
 const Coord = struct {
@@ -43,8 +87,8 @@ const Coord = struct {
 };
 
 const Node = struct {
-    left: ?*Node = null,
-    right: ?*Node = null,
+    left: ?Coord = null,
+    right: ?Coord = null,
 };
 
 test "hash stuff" {
