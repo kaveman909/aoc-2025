@@ -17,7 +17,7 @@ pub fn run() !void {
     while (grid_in.next()) |row| {
         for (row, 0..) |cell, i| {
             if (cell == '.') {
-                if (cur_row[i] == '|' or above_row[i] == '|') {
+                if (cur_row[i] == '|' or above_row[i] == '|' or above_row[i] == 'S') {
                     cur_row[i] = '|';
                 } else {
                     cur_row[i] = '.';
