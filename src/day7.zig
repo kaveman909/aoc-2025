@@ -6,8 +6,8 @@ const heap = std.heap;
 const expect = std.testing.expect;
 
 pub fn run() !void {
-    const input = @embedFile("input/day7_sample.txt");
-    const N_COLS = 15;
+    const input = @embedFile("input/day7.txt");
+    const N_COLS = 141;
 
     var grid_in = mem.splitAny(u8, input, "\n");
     var cur_row: [N_COLS]u8 = undefined;
@@ -49,6 +49,8 @@ pub fn run() !void {
     defer arena.deinit();
     const allocator = arena.allocator();
     var tree = std.AutoHashMap(Coord, Node).init(allocator);
+    var visited = std.AutoHashMap(Coord, u64).init(allocator);
+
     for (0..N_COLS) |y| {
         for (0..N_COLS) |x| {
             if (grid[y][x] != '^') {
@@ -76,8 +78,8 @@ pub fn run() !void {
         }
     }
 
-    const total_paths = traverse(.{ .x = N_COLS / 2, .y = 1 }, tree);
-    debug.print("Part 2: {}\n", .{total_paths});
+    const total_paths = try traverse(.{ .x = N_COLS / 2, .y = 1 }, &tree, &visited);
+    debug.print("Part 2: {d}\n", .{total_paths});
 }
 
 const Coord = struct {
@@ -98,19 +100,23 @@ test "hash stuff" {
     try expect(map.contains(.{ .x = 0, .y = 0 }) == true);
 }
 
-fn traverse(node: Coord, tree: std.AutoHashMap(Coord, Node)) u32 {
-    var total: u32 = 0;
+fn traverse(node: Coord, tree: *const std.AutoHashMap(Coord, Node), visited: *std.AutoHashMap(Coord, u64)) !u64 {
+    if (visited.contains(node)) {
+        return visited.get(node).?;
+    }
+    var total: u64 = 0;
     const left = tree.get(node).?.left;
     if (left != null) {
-        total += traverse(left.?, tree);
+        total += try traverse(left.?, tree, visited);
     } else {
         total += 1;
     }
     const right = tree.get(node).?.right;
     if (right != null) {
-        total += traverse(right.?, tree);
+        total += try traverse(right.?, tree, visited);
     } else {
         total += 1;
     }
+    try visited.put(node, total);
     return total;
 }
