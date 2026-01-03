@@ -75,10 +75,9 @@ pub fn run() !void {
             try tree.put(.{ .x = x, .y = y }, .{ .left = left, .right = right });
         }
     }
-    var ki = tree.keyIterator();
-    while (ki.next()) |k| {
-        debug.print("k: {any}, v: {any}\n", .{ k.*, tree.get(k.*) });
-    }
+
+    const total_paths = traverse(.{ .x = N_COLS / 2, .y = 1 }, tree);
+    debug.print("Part 2: {}\n", .{total_paths});
 }
 
 const Coord = struct {
@@ -97,4 +96,21 @@ test "hash stuff" {
 
     try map.put(.{ .x = 0, .y = 0 }, .{});
     try expect(map.contains(.{ .x = 0, .y = 0 }) == true);
+}
+
+fn traverse(node: Coord, tree: std.AutoHashMap(Coord, Node)) u32 {
+    var total: u32 = 0;
+    const left = tree.get(node).?.left;
+    if (left != null) {
+        total += traverse(left.?, tree);
+    } else {
+        total += 1;
+    }
+    const right = tree.get(node).?.right;
+    if (right != null) {
+        total += traverse(right.?, tree);
+    } else {
+        total += 1;
+    }
+    return total;
 }
