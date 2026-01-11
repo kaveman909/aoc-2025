@@ -4,6 +4,7 @@ const mem = std.mem;
 const fmt = std.fmt;
 const debug = std.debug;
 const heap = std.heap;
+const sort = std.sort;
 const array_list = std.array_list;
 
 pub fn run() !void {
@@ -33,8 +34,6 @@ pub fn run() !void {
     var box_pairs = std.array_list.Managed(BoxPair).init(allocator);
     defer box_pairs.deinit();
 
-    const BoxList = std.array_list.Managed(*Box);
-
     // calculate all distances between boxes
     for (0..N_BOXES) |ii| {
         for ((ii + 1)..N_BOXES) |j| {
@@ -49,6 +48,7 @@ pub fn run() !void {
 
     // sort the distances
     mem.sort(BoxPair, box_pairs.items, {}, compareBoxPair);
+    const BoxList = std.array_list.Managed(*Box);
     var circuit_map = std.AutoHashMap(usize, BoxList).init(allocator);
     defer circuit_map.deinit();
 
@@ -86,6 +86,17 @@ pub fn run() !void {
     for (boxes) |box| {
         debug.print("{any}\n", .{box});
     }
+
+    const CircuitSizeList = std.array_list.Managed(usize);
+    var circuit_sizes = CircuitSizeList.init(allocator);
+    defer circuit_sizes.deinit();
+
+    var vi = circuit_map.valueIterator();
+    while (vi.next()) |v| {
+        try circuit_sizes.append(v.*.items.len);
+    }
+    mem.sort(usize, circuit_sizes.items, {}, sort.desc(usize));
+    debug.print("{any}\n", .{circuit_sizes.items});
 }
 
 const Coord = struct {
