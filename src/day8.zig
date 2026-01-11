@@ -11,6 +11,7 @@ pub fn run() !void {
     var boxes_in = mem.splitAny(u8, input, "\n");
 
     const N_BOXES: usize = 20;
+    const N_PAIRS: usize = 10;
     var boxes: [N_BOXES]Box = undefined;
     var i: usize = 0;
     while (boxes_in.next()) |box_in| : (i += 1) {
@@ -32,7 +33,7 @@ pub fn run() !void {
     var box_pairs = std.array_list.Managed(BoxPair).init(allocator);
     defer box_pairs.deinit();
 
-    const BoxList = std.array_list.Managed(&Box);
+    const BoxList = std.array_list.Managed(*Box);
 
     // calculate all distances between boxes
     for (0..N_BOXES) |ii| {
@@ -49,17 +50,36 @@ pub fn run() !void {
     // sort the distances
     mem.sort(BoxPair, box_pairs.items, {}, compareBoxPair);
     var circuit_map = std.AutoHashMap(usize, BoxList).init(allocator);
+    defer circuit_map.deinit();
 
-    for (0..10) |ii| {
-        var b1 = box_pairs.items[ii].b1;
+    var made_connections: usize = 0;
+    var ii: usize = 0;
+    while (made_connections < N_PAIRS) : (ii += 1) {
+        const b1 = box_pairs.items[ii].b1;
         var b2 = box_pairs.items[ii].b2;
         if (b2.circuit != b1.circuit) {
-            // TODO
-            // check if one of the circuits is already in the circuit map
-            // if so, consume the other circuit (don't think it matters which one?)
-            // (make sure to delete the other circuit from map)
-            // (and append the new Boxes to the 'surviving' circuit map)
-            // update box circuit values as well so things stay in sync.
+            made_connections += 1;
+            if (circuit_map.contains(b1.circuit)) {
+                if (circuit_map.contains(b2.circuit)) {
+                    // tricky case; merge b2 list into b1 list
+                    const circuit_b2_list = circuit_map.get(b2.circuit).?;
+                    for (circuit_b2_list.items) |circuit_b2_box| {
+                        circuit_b2_box.circuit = b1.circuit;
+                        try circuit_map.getPtr(b1.circuit).?.append(circuit_b2_box);
+                    }
+                    _ = circuit_map.remove(b2.circuit);
+                } else {
+                    b2.circuit = b1.circuit;
+                    try circuit_map.getPtr(b1.circuit).?.append(b2);
+                }
+            } else if (circuit_map.contains(b2.circuit)) {
+                b1.circuit = b2.circuit;
+                try circuit_map.getPtr(b2.circuit).?.append(b1);
+            } else {
+                b2.circuit = b1.circuit;
+                try circuit_map.put(b1.circuit, BoxList.init(allocator));
+                try circuit_map.getPtr(b1.circuit).?.append(b2);
+            }
         } // else, nothing happens
         //debug.print("{any}\n", .{box_pairs.items[ii]});
     }
